@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categories</title>
+</head>
+<body>
+    <h1>Categories</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Category Name</th>
+                <th>Number of Questions</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="category-list"></tbody>
+    </table>
+    <form id="add-category-form">
+        <label for="category">New Category:</label>
+        <input type="text" id="category" name="category" required>
+        <button type="submit">Add Category</button>
+    </form>
+    <script>
+        async function fetchCategories() {
+            const response = await fetch('backend.php');
+            const data = await response.json();
+            const categoryList = document.getElementById('category-list');
+            categoryList.innerHTML = '';
+            data.forEach(category => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${category.cat_id}</td>
+                    <td>${category.cat}</td>
+                    <td>${category.num_questions}</td>
+                    <td>
+                        <button onclick="deleteCategory(${category.cat_id})">Delete</button>
+                    </td>
+                `;
+                categoryList.appendChild(row);
+            });
+        }
+
+        async function addCategory(event) {
+            event.preventDefault();
+            const categoryInput = document.getElementById('category');
+            const category = categoryInput.value;
+            categoryInput.value = '';
+            await fetch('backend.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({cat: category})
+            });
+            fetchCategories();
+        }
+
+        async function deleteCategory(catId) {
+            await fetch('backend.php', {
+                method: 'DELETE',
+                body: `cat_id=${catId}`,
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            });
+            fetchCategories();
+        }
+
+        document.getElementById('add-category-form').addEventListener('submit', addCategory);
+
+        fetchCategories();
+    </script>
+</body>
+</html>
